@@ -150,10 +150,12 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  String? stateLogs;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _requestPermissions();
     _configureDidReceiveLocalNotificationSubject();
     _configureSelectNotificationSubject();
@@ -218,7 +220,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (stateLogs == null) {
+      stateLogs = '${state.toString()}\n';
+    } else {
+      stateLogs = stateLogs! + '${state.toString()}\n';
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
     didReceiveLocalNotificationSubject.close();
     selectNotificationSubject.close();
     super.dispose();
@@ -236,6 +252,17 @@ class _HomePageState extends State<HomePage> {
               child: Center(
                 child: Column(
                   children: <Widget>[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
+                      child: Text(
+                        'State logs',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                      child: Text(stateLogs ?? ''),
+                    ),
                     const Padding(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 8),
                       child: Text(
